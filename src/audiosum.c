@@ -390,6 +390,8 @@ int main(int arg_n, char *arg[])
 
 		free(hash);
 
+		fclose (f);
+
 	}
 
 	return 0;
