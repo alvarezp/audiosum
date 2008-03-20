@@ -1,0 +1,12 @@
+alvarezp@alvarezp-laptop:~$ md5sum (some files...)
+d662def56360c1ba71975fe0858651df  other/music/ALEX UBAGO - QUE PIDES TU.mp3
+4e91970580b0355b3aa7e711416d50ba  other/music/Alex Ubago.- Vuelve.mp3
+07894b351ae9df4a3c8ca487169e1524  DCIM/iPod_Control/Music/F00/ASFP.mp3
+82db5ed3ffe951aba19cdd2d38cbea01  other/music/no doubt - bath water.mp3
+
+alvarezp@alvarezp-laptop:~$ find -iname "*.mp3" | audiosum | sort | uniq -D -w 41
+003c6b41 36d2a24f44413f4a4ab3282e7cea1649 [I3v1] [I3v2] [----] [----] ./other/music/ALEX UBAGO - QUE PIDES TU.mp3
+003c6b41 36d2a24f44413f4a4ab3282e7cea1649 [I3v1] [----] [----] [----] ./other/music/Alex Ubago.- Vuelve.mp3
+0058f7a4 17df577141ae1db6384309e2e3cbe2c6 [I3v1] [I3v2] [----] [----] ./DCIM/iPod_Control/Music/F00/ASFP.mp3
+0058f7a4 17df577141ae1db6384309e2e3cbe2c6 [I3v1] [----] [----] [----] ./other/music/no doubt - bath water.mp3
+
