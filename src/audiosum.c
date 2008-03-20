@@ -289,9 +289,46 @@ It tries to ignore non-audio parts. Current features are:\r\n\
 int main(int arg_n, char *arg[])
 {
 	char filename[1024];
+
+	int i;
+	MHASH td;
+	unsigned char buffer[8192];
+	unsigned char *hash;
+
+	int mode_brief=0;
+	int help=0;
+	char c;
+	int errflg=0;
 	unsigned long crc;
 	FILE *f;
 	int r;
+
+	while ((c = getopt(arg_n, arg, ":bh")) != -1) {
+		switch(c) {
+		case 'b':
+			mode_brief++;
+			break;
+		case 'h':
+			help++;
+			break;
+		case '?':
+			fprintf(stderr,	"audiosum: unrecognized option: -%c\n", optopt);
+			exit(EXIT_FAILURE);
+			break;
+		}
+	}
+	if (errflg || help) {
+		fprintf(stderr, "usage: audiosum [options]\n");
+		fprintf(stderr, "\n");
+		fprintf(stderr, "Options:\n");
+		fprintf(stderr, "	-b         Brief: Only print size of files.\n");
+		fprintf(stderr, "	-h         Shows this help.\n");
+		fprintf(stderr, "\n");
+		if (help)
+			exit(EXIT_SUCCESS);	
+		else 
+			exit(EXIT_FAILURE);
+	}
 
 	if (arg_n > 1 && !strcmp(arg[1], "--help")) {
 		showhelp();
@@ -361,34 +398,32 @@ int main(int arg_n, char *arg[])
 
 		fseek(f, OffsetStart, SEEK_SET);
 
-		int i;
-		MHASH td;
-		unsigned char buffer[8192];
-		unsigned char *hash;
-
-		td = mhash_init(MHASH_MD5);
-
-		if (td == MHASH_FAILED)
-			exit(1);
-
-		int howmany = OffsetEnd - OffsetStart + 1;
-		while (howmany > 0
-			   && (r =
-				   fread(&buffer, 1, howmany > 8192 ? 8192 : howmany,
-						 f)) > 0) {
-			mhash(td, &buffer, r);
-			howmany -= 8192;
-		}
-
-		hash = mhash_end(td);
-
 		printf("%08lx ", OffsetEnd - OffsetStart);
-		for (i = 0; i < mhash_get_block_size(MHASH_MD5); i++) {
-			printf("%.2x", hash[i]);
-		}
-		printf(" [%s] [%s] [%s] [%s] %s\n", hadi3v1, hadi3v2, hadl3v1, hadl3v2, filename);
 
-		free(hash);
+		if (!mode_brief) {
+			td = mhash_init(MHASH_MD5);
+
+			if (td == MHASH_FAILED)
+				exit(1);
+
+			int howmany = OffsetEnd - OffsetStart + 1;
+			while (howmany > 0
+				   && (r =
+					   fread(&buffer, 1, howmany > 8192 ? 8192 : howmany,
+							 f)) > 0) {
+				mhash(td, &buffer, r);
+				howmany -= 8192;
+			}
+
+			hash = mhash_end(td);
+
+			for (i = 0; i < mhash_get_block_size(MHASH_MD5); i++) {
+				printf("%.2x", hash[i]);
+			}
+			free(hash);
+		}
+
+		printf(" [%s] [%s] [%s] [%s] %s\n", hadi3v1, hadi3v2, hadl3v1, hadl3v2, filename);
 
 		fclose (f);
 
