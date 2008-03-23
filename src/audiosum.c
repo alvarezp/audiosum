@@ -262,25 +262,26 @@ unsigned long filesize(FILE * stream)
 void showhelp()
 {
 	const char *help = "\n\
+usage: audiosum [options]\r\n\
+\r\n\
+Options:\r\n\
+	-b         Brief: Only print size of files.\r\n\
+	-h         Shows this help.\r\n\
+\r\n\
 Program operation:\r\n\
- + It reads a sequence of file names from stdin (it should names\r\n\
-   MP3 files) and sends to stdout the following information\r\n\
-   about them:\r\n\
+ + It reads a sequence of file names from stdin (they should be MP3 files)\r\n\
+   sends to stdout the following information about them:\r\n\
+	: File size, in hex format (8 chars).\r\n\
+	: MD5SUM of the file without ID3 or Lyrics tags, in hex format (32 chars).\
 \r\n\
-   : File size, in hex format (%08X).\r\n\
-   : MD5SUM of the file without ID3 or Lyrics tags, in hex format.\r\n\
-   : Complete file name (%s).\r\n\
-   : Whether some signatures were found.\r\n\
+	: What signatures were found.\r\n\
+	: Complete file name.\r\n\
 \r\n\
-It tries to ignore non-audio parts. Current features are:\r\n\
-\r\n\
-   : Knows how to ignore the following tag sections:\r\n\
-     . ID3v1.x\r\n\
-     . ID3v2.x\r\n\
-\r\n\
-   : Knows how to ignore the following lyrics sections:\r\n\
-     . Lyrics3 v1 (not tested)\r\n\
-     . Lyrics3 v2.00\r\n\
+It tries to ignore non-audio parts. Currently ignored sections are:\r\n\
+	: ID3v1.x\r\n\
+	: ID3v2.x\r\n\
+	: Lyrics3 v1 (not tested)\r\n\
+	: Lyrics3 v2.00\r\n\
 \r\n\
 ";
 	printf("%s", help);
@@ -318,23 +319,12 @@ int main(int arg_n, char *arg[])
 		}
 	}
 	if (errflg || help) {
-		fprintf(stdout, "usage: audiosum [options]\n");
-		fprintf(stdout, "\n");
-		fprintf(stdout, "Options:\n");
-		fprintf(stdout, "	-b         Brief: Only print size of files.\n");
-		fprintf(stdout, "	-h         Shows this help.\n");
-		fprintf(stdout, "\n");
+		showhelp();
 		if (help)
 			exit(EXIT_SUCCESS);	
 		else 
 			exit(EXIT_FAILURE);
 	}
-
-	if (arg_n > 1 && !strcmp(arg[1], "--help")) {
-		showhelp();
-		return 0;
-	}
-
 
 	while (fgets(filename, 1024, stdin)) {
 		if (filename[strlen(filename) - 1] == '\n') {
