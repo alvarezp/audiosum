@@ -318,12 +318,12 @@ int main(int arg_n, char *arg[])
 		}
 	}
 	if (errflg || help) {
-		fprintf(stderr, "usage: audiosum [options]\n");
-		fprintf(stderr, "\n");
-		fprintf(stderr, "Options:\n");
-		fprintf(stderr, "	-b         Brief: Only print size of files.\n");
-		fprintf(stderr, "	-h         Shows this help.\n");
-		fprintf(stderr, "\n");
+		fprintf(stdout, "usage: audiosum [options]\n");
+		fprintf(stdout, "\n");
+		fprintf(stdout, "Options:\n");
+		fprintf(stdout, "	-b         Brief: Only print size of files.\n");
+		fprintf(stdout, "	-h         Shows this help.\n");
+		fprintf(stdout, "\n");
 		if (help)
 			exit(EXIT_SUCCESS);	
 		else 
