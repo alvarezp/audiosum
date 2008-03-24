@@ -1,6 +1,6 @@
 /******************************************************************************
 
-audiosum.c -- Checksum of an audio file excluding ID3 or Lyrics3 sections.
+audiosum.c -- Prints the hash of an audio file excluding tag sections.
 (C) Copyright 2001-2008 Octavio Alvarez Piza, alvarezp@alvarezp.ods.org
 
 Released under GNU/GPL license. All other rights reserved.
