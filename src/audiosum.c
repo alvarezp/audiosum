@@ -283,25 +283,34 @@ void showhelp()
 usage: audiosum [options]\r\n\
 \r\n\
 Options:\r\n\
-	-a algo    Choose a different algorithm from MD5 for hashing.\r\n\
-	-l         Print the list of supported hashes.\r\n\
-	-b n (%)   Brief: Only compute n percent of the size of each file.\r\n\
-		If n == 0 or ommited, only print the file size.\r\n\
-	-h         Shows this help.\r\n\
+    -a algo    Choose a different algorithm from MD5 for hashing.\r\n\
+    -l         Print the list of supported hashes.\r\n\
+    -b n (%)   Brief: Only compute n percent of the size of each file.\r\n\
+               If n == 0 or ommited, only print the file size.\r\n\
+    -h         Shows this help.\r\n\
 \r\n\
 Program operation:\r\n\
  + It reads a sequence of file names from stdin (they should be MP3 files)\r\n\
    sends to stdout the following information about them:\r\n\
-	: File size, in hex format (8 chars).\r\n\
-	: Hash of the file without ID3 or Lyrics tags, in hex format.\r\n\
-	: What signatures were found.\r\n\
-	: Complete file name.\r\n\
+    : File size, in hex format (8 chars).\r\n\
+    : Hash of the file without ID3 or Lyrics tags, in hex format.\r\n\
+    : What signatures were found.\r\n\
+    : Complete file name.\r\n\
 \r\n\
 It tries to ignore non-audio parts. Currently ignored sections are:\r\n\
-	: ID3v1.x\r\n\
-	: ID3v2.x\r\n\
-	: Lyrics3 v1 (not tested)\r\n\
-	: Lyrics3 v2.00\r\n\
+    : ID3v1.x\r\n\
+    : ID3v2.x\r\n\
+    : Lyrics3 v1 (not tested)\r\n\
+    : Lyrics3 v2.00\r\n\
+\r\n\
+Usage:\r\n\
+    : Audiosum is designed to be wrapped by sort and uniq, like this:\r\n\
+      (you can copy and paste):\r\n\
+\r\n\
+find $HOME /mnt/music -iname \"*.mp3\" | \\\r\n\
+    audiosum -b | sort | uniq -D -w 8 | cut -d ' ' -f 6- | \\\r\n\
+    audiosum -b 2 | sort | uniq -D -w 41 | cut -d ' ' -f 7- | \\\r\n\
+    audiosum | sort | uniq --all-repeated=separate -w 41 > result.txt\r\n\
 \r\n\
 ";
 
