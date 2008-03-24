@@ -477,9 +477,10 @@ int main(int arg_n, char *arg[])
 				printf("%.2x", hash[i]);
 			}
 			free(hash);
+			printf(" ");
 		}
 
-		printf(" [%s] [%s] [%s] [%s] %s\n", hadi3v1, hadi3v2, hadl3v1, hadl3v2, filename);
+		printf("[%s] [%s] [%s] [%s] %s\n", hadi3v1, hadi3v2, hadl3v1, hadl3v2, filename);
 
 		fclose (f);
 
