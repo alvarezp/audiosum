@@ -1,0 +1,235 @@
+HOW DID I CHOSE MD5 AS THE DEFAULT HASHING ALGORITHM
+====================================================
+
+After giving audiosum the capability to use all of the available hashing
+algorithms in mhash, I decided to choose a default and remove the broken ones.
+
+STEP 1: I printed the time it took each algorithm to generate the hashes for
+25 specific MP3 files (code #1). I ran the code three times. I ignored the
+first one just to make sure the other two were run in farily equal disk-cache
+circumstances. (Sure, 'head -n 25' doesn't take care of using *the same* files,
+but the file system here never changed the order, so I went ahead with it).
+
+STEP 2: I averaged the results by using code #2, with output from code #1 as
+the input.
+
+STEP 3: I edited output from code #2 to divide the average time by the number
+of bits the hash gives as output. I sorted the results. 
+
+Of course, this is not the ideal method: it should be the time multiplied by
+the probability of duplicate hashes from different sources. However, I don't
+have that info handy for all the algorithms at this moment.
+
+BRIEF RESULTS:
+ * MD5 is the winner.
+ * CRC32, CRC32B, ADLER32, MD2 and MD4 get removed from the program. You can
+   uncomment them back if you want to.
+
+DETAILED RESULTS: (in 1/100*seconds per bit in hash lenght)
+
+md5                  .312
+md4                  .335
+ripemd256            .351
+ripemd128            .515
+ripemd320            .550
+ripemd160            .718
+haval256             .730
+sha256               .742
+haval224             .794
+sha224               .861
+tiger192             .979
+crc32                1.000
+haval192             1.083
+crc32b               1.093
+sha1                 1.106
+haval160             1.143
+whirlpool            1.302
+tiger160             1.337
+haval128             1.406
+tiger128             1.460
+adler32              1.500
+sha512               1.533
+sha384               2.028
+gost                 3.281
+snefru256            5.062
+snefru128            6.703
+md2                  9.750
+
+As you can see, md5 is the clear winner here and md2 is the clear loser.
+
+I discarded MD4 because it is known to be broken (read "high probability of
+duplicates"). Since the intention of audiosum is to find files that the user
+can erase, MD4 has been taken out. So has everything that gives less than 128
+bit hashes without a performance benefit, namely, CRC32, CRC32B and ADLER32.
+
+CODE #1
+=======
+
+# ALGORITHMS='crc32 crc32b md2 md4 md5 sha1 sha224 sha256 sha384 sha512
+gost ripemd128 ripemd160 ripemd256 ripemd320 tiger128 tiger160 tiger192
+haval224 haval256 haval192 haval160 haval128 adler32 whirlpool snefru128
+snefru256'
+
+# for ALGO in $ALGORITHMS; do
+  printf "%-10s: %s\n" $ALGO `/usr/bin/time --format=%e \
+    sh -c '
+      find /home/alvarezp/other/music -iname "*.mp3" | head -n 25 | \
+        src/audiosum -a '$ALGO' 1> /dev/null' \
+    2>&1`
+done
+
+crc32     : 0.32
+crc32b    : 0.35
+md2       : 11.04
+md4       : 0.44
+md5       : 0.40
+sha1      : 1.78
+sha224    : 1.95
+sha256    : 1.91
+sha384    : 7.79
+sha512    : 7.82
+gost      : 8.53
+ripemd128 : 0.67
+ripemd160 : 1.15
+ripemd256 : 0.91
+ripemd320 : 1.79
+tiger128  : 1.87
+tiger160  : 2.36
+tiger192  : 1.88
+haval224  : 1.78
+haval256  : 1.79
+haval192  : 1.81
+haval160  : 1.79
+haval128  : 1.78
+adler32   : 0.48
+whirlpool : 6.55
+snefru128 : 8.40
+snefru256 : 12.46
+
+crc32     : 0.32
+crc32b    : 0.36
+md2       : 13.92
+md4       : 0.43
+md5       : 0.40
+sha1      : 1.77
+sha224    : 1.91
+sha256    : 1.89
+sha384    : 7.80
+sha512    : 7.89
+gost      : 8.27
+ripemd128 : 0.66
+ripemd160 : 1.15
+ripemd256 : 0.90
+ripemd320 : 1.74
+tiger128  : 1.87
+tiger160  : 1.92
+tiger192  : 1.89
+haval224  : 1.78
+haval256  : 1.95
+haval192  : 2.36
+haval160  : 1.87
+haval128  : 1.83
+adler32   : 0.48
+whirlpool : 6.80
+snefru128 : 8.77
+snefru256 : 13.47
+
+CODE #2
+=======
+
+# grep -v '^$' | sort | while read NAME COLON SECONDS2 ELSE; do
+  read NAME2 COLON2 SECONDS3;
+  echo $NAME2:`echo \(100*$SECONDS2+100*$SECONDS3\)/2 | bc`
+done | sort -k 2,2 -g -t:
+
+crc32:32
+crc32b:35
+md5:40
+md4:43
+adler32:48
+ripemd128:66
+ripemd256:90
+ripemd160:115
+ripemd320:176
+sha1:177
+haval224:178
+haval128:180
+haval160:183
+haval256:187
+tiger128:187
+tiger192:188
+sha256:190
+sha224:193
+haval192:208
+tiger160:214
+whirlpool:667
+sha384:779
+sha512:785
+gost:840
+snefru128:858
+md2:1248
+snefru256:1296
+
+CODE #3
+=======
+
+crc32:32/32
+crc32b:35/32
+md5:40/128
+md4:43/128
+adler32:48/32
+ripemd128:66/128
+ripemd256:90/256
+ripemd160:115/160
+ripemd320:176/320
+sha1:177/160
+haval224:178/224
+haval128:180/128
+haval160:183/160
+haval256:187/256
+tiger128:187/128
+tiger192:188/192
+sha256:190/256
+sha224:193/224
+haval192:208/192
+tiger160:214/160
+whirlpool:667/512
+sha384:779/384
+sha512:785/512
+gost:840/256
+snefru128:858/128
+md2:1248/128
+snefru256:1296/256
+
+# while IFS=: read NAME EVAL; do
+  printf "%-20s %s\n" $NAME `echo scale=3\; $EVAL | bc`
+done | sort -k 2,2
+
+md5                  .312
+md4                  .335
+ripemd256            .351
+ripemd128            .515
+ripemd320            .550
+ripemd160            .718
+haval256             .730
+sha256               .742
+haval224             .794
+sha224               .861
+tiger192             .979
+crc32                1.000
+haval192             1.083
+crc32b               1.093
+sha1                 1.106
+haval160             1.143
+whirlpool            1.302
+tiger160             1.337
+haval128             1.406
+tiger128             1.460
+adler32              1.500
+sha512               1.533
+sha384               2.028
+gost                 3.281
+snefru256            5.062
+snefru128            6.703
+md2                  9.750
+

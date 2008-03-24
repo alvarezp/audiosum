@@ -5,27 +5,9 @@ audiosum.c -- Checksum of an audio file excluding ID3 or Lyrics3 sections.
 
 Released under GNU/GPL license. All other rights reserved.
 
-Program operation:
- + It reads a sequence of file names from stdin (it should names
-   MP3 files) and sends to stdout the following information
-   about them:
+## For program operation, see the showhelp() function. ##
 
-   : File size, in hex format (%08X).
-   : MD5SUM of the file without ID3 or Lyrics tags, in hex format.
-   : Complete file name (%s).
-   : Whether some signatures were found.
-
-It tries to ignore non-audio parts. Current features are:
-
-   : Knows how to ignore the following tag sections:
-     . ID3v1.x
-     . ID3v2.x
-
-   : Knows how to ignore the following lyrics sections:
-     . Lyrics3 v1 (not tested)
-     . Lyrics3 v2.00
-
-Version history:
+Version history before Git:
 
  + Code has been restructured to avoid nested if().
  + Code now uses MD5 instead of CRC32.
@@ -59,6 +41,42 @@ void printd(char *msg, const char *filename, int code)
 #define printd(a,b,c) ((void)0)
 #endif							/* */
 
+hashid default_algorithm = MHASH_MD5;
+
+struct algorithms {
+	const char *cmdline_name;
+	hashid libmhash_id;
+} algorithms[] = {
+//	{ "crc32",     MHASH_CRC32     },
+//	{ "crc32b",    MHASH_CRC32B    },
+//	{ "adler32",   MHASH_ADLER32   },
+//	{ "md2",       MHASH_MD2       },
+//	{ "md4",       MHASH_MD4       },
+	{ "md5",       MHASH_MD5       },
+	{ "sha1",      MHASH_SHA1      },
+	{ "sha224",    MHASH_SHA224    },
+	{ "sha256",    MHASH_SHA256    },
+	{ "sha384",    MHASH_SHA384    },
+	{ "sha512",    MHASH_SHA512    },
+	{ "gost",      MHASH_GOST      },
+	{ "ripemd128", MHASH_RIPEMD128 },
+	{ "ripemd160", MHASH_RIPEMD160 },
+	{ "ripemd256", MHASH_RIPEMD256 },
+	{ "ripemd320", MHASH_RIPEMD320 },
+	{ "tiger128",  MHASH_TIGER128  },
+	{ "tiger160",  MHASH_TIGER160  },
+	{ "tiger192",  MHASH_TIGER192  },
+	{ "haval224",  MHASH_HAVAL224  },
+	{ "haval256",  MHASH_HAVAL256  },
+	{ "haval192",  MHASH_HAVAL192  },
+	{ "haval160",  MHASH_HAVAL160  },
+	{ "haval128",  MHASH_HAVAL128  },
+	{ "whirlpool", MHASH_WHIRLPOOL },
+	{ "snefru128", MHASH_SNEFRU128 },
+	{ "snefru256", MHASH_SNEFRU256 },
+};
+
+const algorithms_n = sizeof(algorithms) / sizeof(algorithms[0]);
 
 int
 ProcessFileID3v1(FILE * f, unsigned long *OffsetStart,
@@ -158,7 +176,7 @@ ProcessFileLyrics3v1(FILE * f, unsigned long *OffsetStart,
 		return -1;
 	}
 
-    char *pos=strstr(L3Buffer, "LYRICSBEGIN");
+	char *pos=strstr(L3Buffer, "LYRICSBEGIN");
 
 	if (pos == 0) {
 		/* We found LYRICSEND but not LYRICSBEGIN. Treat as unexpected. */
@@ -261,10 +279,12 @@ unsigned long filesize(FILE * stream)
 
 void showhelp()
 {
-	const char *help = "\n\
+	const char *help = "\r\n\
 usage: audiosum [options]\r\n\
 \r\n\
 Options:\r\n\
+	-a algo    Choose a different algorithm from MD5 for hashing.\r\n\
+	-l         Print the list of supported hashes.\r\n\
 	-b         Brief: Only print size of files.\r\n\
 	-h         Shows this help.\r\n\
 \r\n\
@@ -272,8 +292,7 @@ Program operation:\r\n\
  + It reads a sequence of file names from stdin (they should be MP3 files)\r\n\
    sends to stdout the following information about them:\r\n\
 	: File size, in hex format (8 chars).\r\n\
-	: MD5SUM of the file without ID3 or Lyrics tags, in hex format (32 chars).\
-\r\n\
+	: Hash of the file without ID3 or Lyrics tags, in hex format.\r\n\
 	: What signatures were found.\r\n\
 	: Complete file name.\r\n\
 \r\n\
@@ -284,7 +303,24 @@ It tries to ignore non-audio parts. Currently ignored sections are:\r\n\
 	: Lyrics3 v2.00\r\n\
 \r\n\
 ";
+
 	printf("%s", help);
+}
+
+void showhashes()
+{
+	hashid i = 0;
+
+	printf("Supported hashes:\n\n");
+	printf("    %-10s %4s\n", "Hash", "Bits");
+	for (i = 0; i < algorithms_n; i++) {
+		printf(" : %c%-10s %4d\n",
+			algorithms[i].libmhash_id == default_algorithm? '*' : ' ',
+			algorithms[i].cmdline_name,
+			mhash_get_block_size(algorithms[i].libmhash_id)*8);
+	}
+
+	printf("\n * Default algorithm if -a is ommited\n\n");
 }
 
 int main(int arg_n, char *arg[])
@@ -296,6 +332,7 @@ int main(int arg_n, char *arg[])
 	unsigned char buffer[8192];
 	unsigned char *hash;
 
+	hashid hash_algorithm = default_algorithm;
 	int mode_brief=0;
 	int help=0;
 	char c;
@@ -304,13 +341,29 @@ int main(int arg_n, char *arg[])
 	FILE *f;
 	int r;
 
-	while ((c = getopt(arg_n, arg, ":bh")) != -1) {
+	while ((c = getopt(arg_n, arg, ":lba:h")) != -1) {
 		switch(c) {
+		case 'a':
+			for (i = 0; i < algorithms_n; i++) {
+				if (strcmp(optarg, algorithms[i].cmdline_name) == 0) {
+					hash_algorithm = algorithms[i].libmhash_id;
+					break;
+				}
+			}
+			if (i == algorithms_n) {
+				fprintf(stderr, "audiosum: unknown algorithm name: %s\n", optarg);
+				return 1;
+			}
+			break;
 		case 'b':
 			mode_brief++;
 			break;
 		case 'h':
 			help++;
+			break;
+		case 'l':
+			showhashes();
+			return 0;
 			break;
 		case '?':
 			fprintf(stderr,	"audiosum: unrecognized option: -%c\n", optopt);
@@ -391,7 +444,7 @@ int main(int arg_n, char *arg[])
 		printf("%08lx ", OffsetEnd - OffsetStart);
 
 		if (!mode_brief) {
-			td = mhash_init(MHASH_MD5);
+			td = mhash_init(hash_algorithm);
 
 			if (td == MHASH_FAILED)
 				exit(1);
@@ -407,7 +460,7 @@ int main(int arg_n, char *arg[])
 
 			hash = mhash_end(td);
 
-			for (i = 0; i < mhash_get_block_size(MHASH_MD5); i++) {
+			for (i = 0; i < mhash_get_block_size(hash_algorithm); i++) {
 				printf("%.2x", hash[i]);
 			}
 			free(hash);
