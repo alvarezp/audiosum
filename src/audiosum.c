@@ -285,7 +285,8 @@ usage: audiosum [options]\r\n\
 Options:\r\n\
 	-a algo    Choose a different algorithm from MD5 for hashing.\r\n\
 	-l         Print the list of supported hashes.\r\n\
-	-b         Brief: Only print size of files.\r\n\
+	-b n (%)   Brief: Only compute n percent of the size of each file.\r\n\
+		If n == 0 or ommited, only print the file size.\r\n\
 	-h         Shows this help.\r\n\
 \r\n\
 Program operation:\r\n\
@@ -333,7 +334,7 @@ int main(int arg_n, char *arg[])
 	unsigned char *hash;
 
 	hashid hash_algorithm = default_algorithm;
-	int mode_brief=0;
+	int brief=100;
 	int help=0;
 	char c;
 	int errflg=0;
@@ -341,7 +342,7 @@ int main(int arg_n, char *arg[])
 	FILE *f;
 	int r;
 
-	while ((c = getopt(arg_n, arg, ":lba:h")) != -1) {
+	while ((c = getopt(arg_n, arg, ":lb:a:h")) != -1) {
 		switch(c) {
 		case 'a':
 			for (i = 0; i < algorithms_n; i++) {
@@ -351,12 +352,13 @@ int main(int arg_n, char *arg[])
 				}
 			}
 			if (i == algorithms_n) {
-				fprintf(stderr, "audiosum: unknown algorithm name: %s\n", optarg);
+				fprintf(stderr, "audiosum: unknown algorithm name: %s\n",
+					optarg);
 				return 1;
 			}
 			break;
 		case 'b':
-			mode_brief++;
+			brief=atoi(optarg);
 			break;
 		case 'h':
 			help++;
@@ -364,6 +366,17 @@ int main(int arg_n, char *arg[])
 		case 'l':
 			showhashes();
 			return 0;
+			break;
+		case ':':
+			switch (optopt) {
+			case 'b':
+				brief = 0;
+				break;
+			case 'a':
+				fprintf(stderr,	"audiosum: warning: unspecified hash algorithm."
+					" Using the default.\n");
+				break;
+			}
 			break;
 		case '?':
 			fprintf(stderr,	"audiosum: unrecognized option: -%c\n", optopt);
@@ -443,13 +456,13 @@ int main(int arg_n, char *arg[])
 
 		printf("%08lx ", OffsetEnd - OffsetStart);
 
-		if (!mode_brief) {
+		if (brief > 0) {
 			td = mhash_init(hash_algorithm);
 
 			if (td == MHASH_FAILED)
 				exit(1);
 
-			int howmany = OffsetEnd - OffsetStart + 1;
+			int howmany = ((OffsetEnd - OffsetStart + 1)*brief)/100;
 			while (howmany > 0
 				   && (r =
 					   fread(&buffer, 1, howmany > 8192 ? 8192 : howmany,
