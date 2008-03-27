@@ -1,0 +1,62 @@
+#!/bin/bash
+
+ALGO=md5
+PERCENT=2
+while getopts ":a:b:h" OPT; do
+	case $OPT in
+	a)
+		ALGO=$OPTARG;
+		;;
+	b)
+		PERCENT=$OPTARG;
+		;;
+	h)
+		echo "
+This script finds duplicate mp3 files by audio content (it ignores tags).
+
+usage: $0 [-a algorithm] [-b percent] [path] [path...]
+
+  -a algorithm   Chooses the hash algorithm to use. See audiosum -l.
+  -b percent     Integer >=1 and <=99, chooses the amount of the file data to
+                 read during the intermediate phase of processing.
+
+This script works by processing the mp3 files according to audiosum -h. This
+is made by three parts:
+
+1. Discards files which have different sizes.
+2. Discards files with same size but different hash for the first n% data.
+3. Discards files with same size but different hash for the whole data.
+
+The remaining files are duplicated files.
+"
+	;;
+	esac
+done
+
+HASH_LEN=`audiosum -l | grep ": .$ALGO" | ( read COLON NAME LEN; echo $((LEN/4)) )`
+if [ -z "$HASH_LEN" ]; then
+	echo Algorithm not supported.
+	exit 1;
+fi
+
+if [[ $HASH_LEN = *[^0-9]* ]]; then
+	echo Algorithm not supported.
+	exit 1;
+fi
+
+if [[ $PERCENT = *[^0-9]* ]]; then
+	echo Percent value must be an integer between 1 and 99.
+	exit 1;
+fi
+
+if [ $PERCENT -lt 1 ] || [ $PERCENT -gt 99 ]; then
+	echo Percent value must be an integer between 1 and 99.
+	exit 1;
+fi
+
+shift $((OPTIND-1))
+
+find $* -iname "*.mp3" | \
+    audiosum -b | sort | uniq -D -w 8 | cut -d ' ' -f 6- | \
+    audiosum -b $PERCENT | sort | uniq -D -w $((HASH_LEN+9)) | cut -d ' ' -f 7- | \
+    audiosum | sort | uniq --all-repeated=separate -w 41
