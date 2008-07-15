@@ -29,6 +29,7 @@ is made by three parts:
 
 The remaining files are duplicated files.
 "
+	exit
 	;;
 	esac
 done
