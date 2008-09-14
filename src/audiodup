@@ -2,7 +2,8 @@
 
 ALGO=md5
 PERCENT=2
-while getopts ":a:b:h" OPT; do
+PATTERN='*.mp3'
+while getopts ":a:b:p:h" OPT; do
 	case $OPT in
 	a)
 		ALGO=$OPTARG;
@@ -10,15 +11,19 @@ while getopts ":a:b:h" OPT; do
 	b)
 		PERCENT=$OPTARG;
 		;;
+	p)
+		PATTERN=$OPTARG;
+		;;
 	h)
 		echo "
 This script finds duplicate mp3 files by audio content (it ignores tags).
 
-usage: $0 [-a algorithm] [-b percent] [path] [path...]
+usage: $0 [-a algorithm] [-b percent] [-p pattern] [path] [path...]
 
   -a algorithm   Chooses the hash algorithm to use. See audiosum -l.
   -b percent     Integer >=1 and <=99, chooses the amount of the file data to
                  read during the intermediate phase of processing.
+  -p pattern     File pattern to match against.
 
 This script works by processing the mp3 files according to audiosum -h. This
 is made by three parts:
@@ -57,7 +62,7 @@ fi
 
 shift $((OPTIND-1))
 
-find $* -iname "*.mp3" | \
+find $* -iname "$PATTERN" | \
     audiosum -b | sort | uniq -D -w 8 | cut -d ' ' -f 6- | \
     audiosum -b $PERCENT | sort | uniq -D -w $((HASH_LEN+9)) | cut -d ' ' -f 7- | \
     audiosum | sort | uniq --all-repeated=separate -w $((HASH_LEN+9)) 
