@@ -62,7 +62,7 @@ fi
 
 shift $((OPTIND-1))
 
-find $* -type f -iname "$PATTERN" | \
+find -- $* -type f -iname "$PATTERN" | \
     audiosum -b | sort | uniq -D -w 8 | cut -d ' ' -f 6- | \
     audiosum -b $PERCENT | sort | uniq -D -w $((HASH_LEN+9)) | cut -d ' ' -f 7- | \
     audiosum | sort | uniq --all-repeated=separate -w $((HASH_LEN+9))
