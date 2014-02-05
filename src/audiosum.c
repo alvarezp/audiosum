@@ -76,7 +76,7 @@ struct algorithms {
 	{ "snefru256", MHASH_SNEFRU256 },
 };
 
-const algorithms_n = sizeof(algorithms) / sizeof(algorithms[0]);
+const int algorithms_n = sizeof(algorithms) / sizeof(algorithms[0]);
 
 int
 ProcessFileID3v1(FILE * f, unsigned long *OffsetStart,
