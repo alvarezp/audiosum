@@ -352,7 +352,7 @@ int main(int arg_n, char *arg[])
 	FILE *f;
 	int r;
 
-	while ((c = getopt(arg_n, arg, ":lb:a:h")) != -1) {
+	while ((c = getopt(arg_n, arg, ":lb:a:hv")) != -1) {
 		switch(c) {
 		case 'a':
 			for (i = 0; i < algorithms_n; i++) {
@@ -377,6 +377,9 @@ int main(int arg_n, char *arg[])
 			showhashes();
 			return 0;
 			break;
+		case 'v':
+			printf("%s\n", PACKAGE_VERSION);
+			return 0;
 		case ':':
 			switch (optopt) {
 			case 'b':
