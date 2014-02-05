@@ -3,7 +3,10 @@
 ALGO=md5
 PERCENT=2
 PATTERN='*.mp3'
-while getopts ":a:b:p:h" OPT; do
+
+VERSION='0.2+git'
+
+while getopts ":a:b:p:hv" OPT; do
 	case $OPT in
 	a)
 		ALGO=$OPTARG;
@@ -36,6 +39,10 @@ The remaining files are duplicated files.
 "
 	exit
 	;;
+	v)
+		echo "$VERSION";
+		exit
+		;;
 	esac
 done
 
