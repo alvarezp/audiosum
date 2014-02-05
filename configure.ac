@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT([audiosum], [0.3], [alvarezp@alvarezp.ods.org])
+AC_INIT([audiosum], [0.3+git], [alvarezp@alvarezp.ods.org])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_SRCDIR([src/audiosum.c])
 AC_CONFIG_HEADER([config.h])
