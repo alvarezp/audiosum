@@ -189,6 +189,7 @@ ProcessFileLyrics3v1(FILE * f, unsigned long *OffsetStart,
 	*OffsetEnd -= 5109;
 	*OffsetEnd += pos - (char *)&L3Buffer;
 
+	return 0;
 }
 
 int
