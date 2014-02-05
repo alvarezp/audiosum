@@ -216,7 +216,7 @@ ProcessFileLyrics3v2(FILE * f, unsigned long *OffsetStart,
 		return -1;
 	}
 
-	if (fgets((char *) &L3Buffer, 7, f) <= 0) {
+	if (fgets((char *) &L3Buffer, 7, f) == NULL) {
 		return -1;
 	}
 
