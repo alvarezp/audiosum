@@ -4,7 +4,7 @@ ALGO=md5
 PERCENT=2
 PATTERN='*.mp3'
 
-VERSION='0.2+git'
+VERSION='0.3'
 
 while getopts ":a:b:p:hv" OPT; do
 	case $OPT in
